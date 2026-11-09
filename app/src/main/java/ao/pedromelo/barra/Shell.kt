@@ -33,6 +33,12 @@ object Shell {
 
     /** Procura o número da tarefa (janela) de uma app. */
     fun idTarefa(pkg: String): Int? {
+        // formato visto no tablet: "* Task{cb442f1 #3311 type=standard A=10271:com.miui.calculator U=0 visible=true ..."
+        val atv = correr("dumpsys activity activities")
+        val re = Regex("""Task\{\w+ #(\d+) type=\w+ A=\d+:([\w.]+)[^\n]*""")
+        val achados = re.findAll(atv).filter { it.groupValues[2] == pkg }.toList()
+        val visivel = achados.firstOrNull { it.value.contains("visible=true") } ?: achados.firstOrNull()
+        if (visivel != null) return visivel.groupValues[1].toIntOrNull()
         val txt = correr("dumpsys activity recents")
         for (re in padroes) {
             for (m in re.findAll(txt)) {
