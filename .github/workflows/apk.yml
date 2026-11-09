@@ -1,0 +1,104 @@
+name: Compilar Barra
+
+# Os commits feitos pelo conector levam "[skip ci]", que trava o evento push.
+# Por isso há também um relógio de 5 em 5 minutos com uma guarda barata:
+# só compila quando há código novo (diferente do último compilado ou falhado).
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "*/5 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk
+  cancel-in-progress: false
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    outputs:
+      precisa: ${{ steps.g.outputs.precisa }}
+      sha: ${{ steps.g.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: g
+        run: |
+          SHA=$(git log -1 --format=%H -- app settings.gradle.kts build.gradle.kts gradle.properties .github/workflows/apk.yml)
+          FEITO=$(tr -d '[:space:]' < estado/construido 2>/dev/null || echo "")
+          FALHOU=$(tr -d '[:space:]' < estado/falhado 2>/dev/null || echo "")
+          echo "sha=$SHA" >> $GITHUB_OUTPUT
+          if [ "$SHA" = "$FEITO" ] || [ "$SHA" = "$FALHOU" ]; then
+            echo "precisa=nao" >> $GITHUB_OUTPUT
+          else
+            echo "precisa=sim" >> $GITHUB_OUTPUT
+          fi
+
+  apk:
+    needs: verificar
+    if: needs.verificar.outputs.precisa == 'sim'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Chave de assinatura (sempre a mesma, para atualizar por cima)
+        run: |
+          if [ ! -f app/debug.keystore ]; then
+            keytool -genkeypair -keystore app/debug.keystore -storetype JKS -storepass android -keypass android -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 20000 -dname "CN=Barra, O=Pedro Melo, C=AO"
+            git config user.name "Barra CI"; git config user.email "ci@barra.local"
+            git add app/debug.keystore && git commit -m "chave de assinatura [skip ci]" && git push
+          fi
+      - name: Componentes Android
+        run: |
+          SDKM="$(ls -d "$ANDROID_HOME"/cmdline-tools/*/bin | head -n 1)/sdkmanager"
+          yes | "$SDKM" --licenses > /dev/null || true
+          "$SDKM" "platforms;android-34" "build-tools;34.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+      - name: Compilar
+        id: compilar
+        run: |
+          set -o pipefail
+          gradle assembleDebug --no-daemon --stacktrace 2>&1 | tee build.log
+          cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/Barra.apk
+      - name: Publicar versão
+        if: success()
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.${{ github.run_number }}
+          name: Barra 1.${{ github.run_number }}
+          body: Descarregue o Barra.apk no tablet e instale.
+          make_latest: true
+          files: app/build/outputs/apk/debug/Barra.apk
+      - name: Registo e estado
+        if: always()
+        run: |
+          mkdir -p estado
+          {
+            echo "run=${{ github.run_number }} estado=${{ job.status }} sha=${{ needs.verificar.outputs.sha }}"
+            grep -nE "^e: |error:|What went wrong|BUILD (SUCCESSFUL|FAILED)" -A6 build.log | head -200 || true
+            echo "----- fim do log -----"
+            tail -c 30000 build.log || true
+          } > estado/registo.txt
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "${{ needs.verificar.outputs.sha }}" > estado/construido
+            echo "{\"versao\": \"1.${{ github.run_number }}\", \"apk\": \"https://github.com/${{ github.repository }}/releases/latest/download/Barra.apk\"}" > estado/versao.json
+          else
+            echo "${{ needs.verificar.outputs.sha }}" > estado/falhado
+          fi
+          git config user.name "Barra CI"
+          git config user.email "ci@barra.local"
+          git add estado
+          git commit -m "estado da compilacao ${{ github.run_number }} [skip ci]" || true
+          git pull --rebase origin main || true
+          git push || true
