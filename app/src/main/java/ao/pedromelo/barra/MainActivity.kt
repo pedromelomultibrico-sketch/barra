@@ -50,14 +50,37 @@ class MainActivity : Activity() {
         }
     }
 
+    private val relogioDiag = android.os.Handler(android.os.Looper.getMainLooper())
+    private val tiqueDiag = object : Runnable {
+        override fun run() {
+            atualizarEstado()
+            relogioDiag.postDelayed(this, 1000)
+        }
+    }
+
     override fun onResume() {
         super.onResume()
-        atualizarEstado()
         arrancarServico()
+        relogioDiag.post(tiqueDiag)
+    }
+
+    override fun onPause() {
+        relogioDiag.removeCallbacks(tiqueDiag)
+        super.onPause()
     }
 
     private fun arrancarServico() {
-        try { startForegroundService(Intent(this, BarraService::class.java)) } catch (_: Exception) {}
+        try {
+            startForegroundService(Intent(this, BarraService::class.java))
+        } catch (e: Exception) {
+            Prefs.p(this).edit().putString(Prefs.ERRO, "arrancar: ${e.javaClass.simpleName}: ${e.message}".take(400)).apply()
+        }
+    }
+
+    private fun reiniciarServico() {
+        Prefs.p(this).edit().remove(Prefs.ERRO).apply()
+        try { stopService(Intent(this, BarraService::class.java)) } catch (_: Exception) {}
+        relogioDiag.postDelayed({ arrancarServico() }, 600)
     }
 
     // ---------- permissões ----------
