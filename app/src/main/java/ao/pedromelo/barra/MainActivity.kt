@@ -187,6 +187,7 @@ class MainActivity : Activity() {
         titulo("Permissões")
         estado = TextView(this).apply { textSize = 14f; setTextColor(Color.WHITE) }
         raiz.addView(estado)
+        botao("Reiniciar a barra") { reiniciarServico() }
         botao("Dar permissão: sobrepor a outras apps") {
             try {
                 startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")))
