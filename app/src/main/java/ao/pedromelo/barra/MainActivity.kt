@@ -288,6 +288,7 @@ class MainActivity : Activity() {
         raiz.addView(linha)
 
         titulo("Conteúdo")
+        caixa("Esconder a barra sozinha (aparece ao passar o rato no fundo do ecrã)", Prefs.AUTO_ESCONDER, Prefs.autoEsconder(this))
         caixa("Mostrar relógio e data", Prefs.RELOGIO, Prefs.relogio(this))
         caixa("Mostrar apps abertas / recentes", Prefs.RECENTES, Prefs.recentes(this))
         deslizador("Máximo de apps recentes", Prefs.MAX_RECENTES, 0, 20, Prefs.maxRecentes(this), "")
