@@ -297,10 +297,13 @@ class BarraService : Service(), InputManager.InputDeviceListener,
         try {
             wm.addView(b, parametrosBarra())
             barra = b
+            estado = "visível"
             recentesMostrados = emptyList()
             atualizar()
         } catch (e: Exception) {
             barra = null
+            estado = "erro ao desenhar"
+            registarErro("desenhar", e)
         }
     }
 
