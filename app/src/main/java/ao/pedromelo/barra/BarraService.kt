@@ -482,9 +482,9 @@ class BarraService : Service(), InputManager.InputDeviceListener,
             setPadding(dp(14), dp(2), dp(24), dp(6))
         })
         if (shizuku) {
-            item("🗗  Abrir em janela") { abrirComModo(pkg, "janela") }
-            item("🗖  Maximizar") { abrirComModo(pkg, "max") }
-            item("🗕  Minimizar") { minimizar() }
+            item("❐  Abrir em janela") { abrirComModo(pkg, "janela") }
+            item("□  Maximizar") { abrirComModo(pkg, "max") }
+            item("—  Minimizar") { minimizar() }
             item("✕  Fechar") { fecharApp(pkg) }
         } else {
             item("Abrir") { abrirApp(pkg) }
