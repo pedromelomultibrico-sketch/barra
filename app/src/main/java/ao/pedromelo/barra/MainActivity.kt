@@ -152,6 +152,8 @@ class MainActivity : Activity() {
             append("\nTeclado/rato: ").append(BarraService.dispositivos.ifBlank { "?" })
             val erro = Prefs.p(this@MainActivity).getString(Prefs.ERRO, "") ?: ""
             if (erro.isNotBlank()) append("\nÚltimo erro: ").append(erro)
+            val teste = Prefs.p(this@MainActivity).getString(Prefs.TESTE, "") ?: ""
+            if (teste.isNotBlank()) append("\n\nTeste das janelas:\n").append(teste)
         }
     }
 
