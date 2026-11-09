@@ -90,6 +90,8 @@ jobs:
             echo "----- fim do log -----"
             tail -c 30000 build.log || true
           } > estado/registo.txt
+          mkdir -p registos
+          cp estado/registo.txt registos/run-${{ github.run_number }}.txt
           if [ "${{ job.status }}" = "success" ]; then
             echo "${{ needs.verificar.outputs.sha }}" > estado/construido
             echo "{\"versao\": \"1.${{ github.run_number }}\", \"apk\": \"https://github.com/${{ github.repository }}/releases/latest/download/Barra.apk\"}" > estado/versao.json
