@@ -243,8 +243,8 @@ class BarraService : Service(), InputManager.InputDeviceListener,
             dp(Prefs.altura(this)),
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
             PixelFormat.TRANSLUCENT
         )
         // posição absoluta, medida a partir do topo do ecrã real
