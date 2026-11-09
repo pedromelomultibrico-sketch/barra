@@ -326,6 +326,19 @@ class BarraService : Service(), InputManager.InputDeviceListener,
             val lpB = parametrosBarra()
             wm.addView(b, lpB)
             barra = b
+            lpBarra = lpB
+            recolhida = false
+            b.aoPairar = { ev ->
+                when (ev.action) {
+                    MotionEvent.ACTION_HOVER_ENTER, MotionEvent.ACTION_HOVER_MOVE -> {
+                        handler.removeCallbacks(recolherDepois)
+                        if (recolhida) expandir()
+                    }
+                    MotionEvent.ACTION_HOVER_EXIT -> agendarRecolher(1200)
+                }
+            }
+            b.aoTocar = { if (recolhida) { expandir(); agendarRecolher(4000); true } else false }
+            agendarRecolher(2500)
             estado = "adicionada (y=${lpB.y}, ecrã=${alturaEcra()})"
             b.postDelayed({
                 val pos = IntArray(2)
