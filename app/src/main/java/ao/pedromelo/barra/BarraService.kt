@@ -491,7 +491,7 @@ class BarraService : Service(), InputManager.InputDeviceListener,
             item("(Ligue o Shizuku nas definições da Barra para janelas)") { abrirDefinicoes() }
         }
         val fixa = pkg in Prefs.fixas(this)
-        item(if (fixa) "📌  Retirar da barra" else "📌  Fixar na barra") {
+        item(if (fixa) "✓  Retirar da barra" else "+  Fixar na barra") {
             Prefs.alternarFixa(this, pkg)
         }
 
