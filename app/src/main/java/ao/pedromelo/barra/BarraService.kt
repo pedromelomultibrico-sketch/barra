@@ -274,7 +274,7 @@ class BarraService : Service(), InputManager.InputDeviceListener,
     private fun mostrar() {
         if (barra != null) return
         val tam = dp(Prefs.tamIcone(this))
-        val b = LinearLayout(this).apply {
+        val b = BarraLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             setBackgroundColor(corFundo())
