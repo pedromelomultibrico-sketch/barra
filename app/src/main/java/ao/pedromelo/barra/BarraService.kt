@@ -344,6 +344,7 @@ class BarraService : Service(), InputManager.InputDeviceListener,
 
     private fun esconder() {
         fecharMenu()
+        fecharPopup()
         barra?.let { try { wm.removeView(it) } catch (_: Exception) {} }
         barra = null
         zonaRecentes = null
