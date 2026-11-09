@@ -375,12 +375,10 @@ class BarraService : Service(), InputManager.InputDeviceListener,
             scaleType = ImageView.ScaleType.FIT_CENTER
         }
         moldura.addView(iv, FrameLayout.LayoutParams(tam, tam))
-        moldura.setOnClickListener { abrirApp(pkg) }
-        moldura.setOnLongClickListener {
-            val ficou = Prefs.alternarFixa(this, pkg)
-            Toast.makeText(this, if (ficou) "Fixada na barra" else "Retirada da barra", Toast.LENGTH_SHORT).show()
-            true
-        }
+        moldura.setOnClickListener { cliqueApp(pkg) }
+        // toque longo (dedo) ou botão direito do rato: menu da janela
+        moldura.setOnLongClickListener { menuApp(pkg, moldura); true }
+        moldura.setOnContextClickListener { menuApp(pkg, moldura); true }
         moldura.layoutParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
         ).apply { marginEnd = dp(2) }
