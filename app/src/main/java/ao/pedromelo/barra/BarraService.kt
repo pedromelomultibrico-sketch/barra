@@ -386,6 +386,134 @@ class BarraService : Service(), InputManager.InputDeviceListener,
         return moldura
     }
 
+    // ---------- janelas (via Shizuku) ----------
+
+    /** Clique numa app da barra: se já está à frente, minimiza; senão abre como ficou da última vez. */
+    private fun cliqueApp(pkg: String) {
+        fecharMenu()
+        if (pkg == appAtual && Shell.disponivel()) {
+            minimizar()
+            return
+        }
+        val modo = Prefs.modoJanela(this, pkg)
+        if (modo.isNotEmpty() && Shell.disponivel()) abrirComModo(pkg, modo) else abrirApp(pkg)
+    }
+
+    private fun componente(pkg: String): String? =
+        packageManager.getLaunchIntentForPackage(pkg)?.component?.flattenToShortString()
+
+    /** modo: "janela" (janela flutuante) ou "max" (ocupa o ecrã todo menos a barra) */
+    private fun abrirComModo(pkg: String, modo: String) {
+        Prefs.gravarModoJanela(this, pkg, modo)
+        val comp = componente(pkg) ?: return abrirApp(pkg)
+        val w = larguraEcra()
+        val h = alturaEcra() - dp(Prefs.altura(this))
+        Thread {
+            try {
+                Shell.correr("am start --windowingMode 5 -n $comp")
+                Thread.sleep(700)
+                val id = Shell.idTarefa(pkg)
+                if (id != null) {
+                    if (modo == "max") {
+                        Shell.correr("am task resize $id 0 0 $w $h")
+                    } else {
+                        val b = Prefs.limitesJanela(this, pkg)
+                        val (l, t, r, bo) = b ?: listOf(w / 6, h / 8, w * 5 / 6, h * 7 / 8)
+                        Shell.correr("am task resize $id $l $t $r $bo")
+                    }
+                }
+            } catch (e: Exception) {
+                registarErro("janela", e)
+            }
+        }.start()
+    }
+
+    private fun minimizar() {
+        Thread { try { Shell.correr("input keyevent 3") } catch (_: Exception) {} }.start()
+    }
+
+    private fun fecharApp(pkg: String) {
+        Thread { try { Shell.correr("am force-stop $pkg") } catch (_: Exception) {} }.start()
+    }
+
+    private var popup: View? = null
+
+    private fun fecharPopup() {
+        popup?.let { try { wm.removeView(it) } catch (_: Exception) {} }
+        popup = null
+    }
+
+    private fun menuApp(pkg: String, ancora: View) {
+        fecharMenu()
+        fecharPopup()
+        val nome = try {
+            packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString()
+        } catch (_: Exception) { pkg }
+        val shizuku = Shell.disponivel()
+        val painel = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            background = GradientDrawable().apply {
+                cornerRadius = dp(8).toFloat()
+                setColor(Color.argb(245, 30, 34, 40))
+            }
+            setPadding(dp(4), dp(6), dp(4), dp(6))
+        }
+        fun item(t: String, acao: () -> Unit) {
+            painel.addView(TextView(this).apply {
+                text = t
+                setTextColor(Color.WHITE)
+                textSize = 14f
+                setPadding(dp(14), dp(8), dp(24), dp(8))
+                setOnClickListener { fecharPopup(); acao() }
+            })
+        }
+        painel.addView(TextView(this).apply {
+            text = nome
+            setTextColor(Color.LTGRAY)
+            textSize = 12f
+            setPadding(dp(14), dp(2), dp(24), dp(6))
+        })
+        if (shizuku) {
+            item("🗗  Abrir em janela") { abrirComModo(pkg, "janela") }
+            item("🗖  Maximizar") { abrirComModo(pkg, "max") }
+            item("🗕  Minimizar") { minimizar() }
+            item("✕  Fechar") { fecharApp(pkg) }
+        } else {
+            item("Abrir") { abrirApp(pkg) }
+            item("(Ligue o Shizuku nas definições da Barra para janelas)") { abrirDefinicoes() }
+        }
+        val fixa = pkg in Prefs.fixas(this)
+        item(if (fixa) "📌  Retirar da barra" else "📌  Fixar na barra") {
+            Prefs.alternarFixa(this, pkg)
+        }
+
+        val pos = IntArray(2)
+        ancora.getLocationOnScreen(pos)
+        val lp = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH or
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            PixelFormat.TRANSLUCENT
+        )
+        painel.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+        lp.gravity = Gravity.TOP or Gravity.START
+        lp.x = pos[0].coerceAtMost(larguraEcra() - painel.measuredWidth).coerceAtLeast(0)
+        lp.y = if (emCima()) dp(Prefs.altura(this)) + dp(4)
+            else (alturaEcra() - dp(Prefs.altura(this)) - dp(4) - painel.measuredHeight).coerceAtLeast(0)
+        if (Build.VERSION.SDK_INT >= 30) lp.fitInsetsTypes = 0
+        painel.setOnTouchListener { _, ev ->
+            if (ev.action == MotionEvent.ACTION_OUTSIDE) { fecharPopup(); true } else false
+        }
+        try {
+            wm.addView(painel, lp)
+            popup = painel
+        } catch (e: Exception) {
+            registarErro("menu", e)
+        }
+    }
+
     private fun abrirApp(pkg: String) {
         fecharMenu()
         val i = packageManager.getLaunchIntentForPackage(pkg) ?: return
