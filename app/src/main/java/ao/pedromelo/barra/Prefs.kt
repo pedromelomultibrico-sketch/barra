@@ -20,6 +20,9 @@ object Prefs {
     const val COLUNAS_MENU = "colunasMenu"
     const val ERRO = "ultimoErro"
     const val TESTE = "testeJanelas"
+    const val AUTO_ESCONDER = "autoEsconder"
+
+    fun autoEsconder(c: Context) = p(c).getBoolean(AUTO_ESCONDER, true)
 
     /** Como a app ficou da última vez: "janela", "max" ou "" (normal). */
     fun modoJanela(c: Context, pkg: String) = p(c).getString("janela_modo_$pkg", "") ?: ""
