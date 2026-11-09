@@ -484,6 +484,7 @@ class BarraService : Service(), InputManager.InputDeviceListener,
         if (shizuku) {
             item("❐  Abrir em janela") { abrirComModo(pkg, "janela") }
             item("□  Maximizar") { abrirComModo(pkg, "max") }
+            item("▣  Ecrã inteiro") { ecraInteiro(pkg) }
             item("—  Minimizar") { minimizar() }
             item("✕  Fechar") { fecharApp(pkg) }
         } else {
