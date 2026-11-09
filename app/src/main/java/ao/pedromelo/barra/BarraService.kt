@@ -315,9 +315,16 @@ class BarraService : Service(), InputManager.InputDeviceListener,
         }
 
         try {
-            wm.addView(b, parametrosBarra())
+            val lpB = parametrosBarra()
+            wm.addView(b, lpB)
             barra = b
-            estado = "visível"
+            estado = "adicionada (y=${lpB.y}, ecrã=${alturaEcra()})"
+            b.postDelayed({
+                val pos = IntArray(2)
+                b.getLocationOnScreen(pos)
+                estado = "visível? pos=${pos[0]},${pos[1]} tam=${b.width}x${b.height} " +
+                    "mostrada=${b.isShown} janela=${b.windowVisibility} ecrã=${alturaEcra()}"
+            }, 800)
             recentesMostrados = emptyList()
             atualizar()
         } catch (e: Exception) {
