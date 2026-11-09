@@ -70,18 +70,39 @@ class BarraService : Service(), InputManager.InputDeviceListener,
         }
     }
 
+    companion object {
+        @Volatile var estado: String = "parado"
+        @Volatile var dispositivos: String = ""
+    }
+
     override fun onBind(intent: Intent?): IBinder? = null
+
+    private fun registarErro(onde: String, e: Throwable) {
+        val txt = "$onde: ${e.javaClass.simpleName}: ${e.message}".take(400)
+        try { Prefs.p(this).edit().putString(Prefs.ERRO, txt).commit() } catch (_: Exception) {}
+    }
 
     override fun onCreate() {
         super.onCreate()
-        wm = getSystemService(WINDOW_SERVICE) as WindowManager
-        im = getSystemService(INPUT_SERVICE) as InputManager
-        arrancarPrimeiroPlano()
-        im.registerInputDeviceListener(this, handler)
-        Prefs.p(this).registerOnSharedPreferenceChangeListener(this)
-        launchers = pacotesLauncher()
-        avaliar()
-        handler.post(tique)
+        val anterior = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { t, e ->
+            registarErro("falha", e)
+            anterior?.uncaughtException(t, e)
+        }
+        estado = "a arrancar"
+        try {
+            wm = getSystemService(WINDOW_SERVICE) as WindowManager
+            im = getSystemService(INPUT_SERVICE) as InputManager
+            arrancarPrimeiroPlano()
+            im.registerInputDeviceListener(this, handler)
+            Prefs.p(this).registerOnSharedPreferenceChangeListener(this)
+            launchers = pacotesLauncher()
+            avaliar()
+            handler.post(tique)
+        } catch (e: Exception) {
+            registarErro("arranque", e)
+            estado = "erro no arranque"
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
