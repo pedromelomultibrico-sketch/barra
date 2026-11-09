@@ -355,7 +355,39 @@ class BarraService : Service(), InputManager.InputDeviceListener,
         }
     }
 
+    // ---------- auto-esconder (como a barra do Windows) ----------
+
+    private var lpBarra: WindowManager.LayoutParams? = null
+    private var recolhida = false
+    private val recolherDepois = Runnable { recolher() }
+
+    private fun agendarRecolher(ms: Long) {
+        handler.removeCallbacks(recolherDepois)
+        if (Prefs.autoEsconder(this)) handler.postDelayed(recolherDepois, ms)
+    }
+
+    private fun recolher() {
+        val b = barra ?: return
+        val lp = lpBarra ?: return
+        if (menu != null || popup != null) { agendarRecolher(1500); return }
+        val fina = dp(4)
+        lp.height = fina
+        lp.y = if (emCima()) 0 else alturaEcra() - fina
+        try { wm.updateViewLayout(b, lp); recolhida = true } catch (_: Exception) {}
+    }
+
+    private fun expandir() {
+        val b = barra ?: return
+        val lp = lpBarra ?: return
+        val alt = dp(Prefs.altura(this))
+        lp.height = alt
+        lp.y = if (emCima()) 0 else (alturaEcra() - alt).coerceAtLeast(0)
+        try { wm.updateViewLayout(b, lp); recolhida = false } catch (_: Exception) {}
+    }
+
     private fun esconder() {
+        handler.removeCallbacks(recolherDepois)
+        lpBarra = null
         fecharMenu()
         fecharPopup()
         barra?.let { try { wm.removeView(it) } catch (_: Exception) {} }
