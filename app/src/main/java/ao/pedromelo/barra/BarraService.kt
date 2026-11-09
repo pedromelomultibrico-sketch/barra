@@ -247,9 +247,10 @@ class BarraService : Service(), InputManager.InputDeviceListener,
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT
         )
-        lp.gravity = (if (emCima()) Gravity.TOP else Gravity.BOTTOM) or Gravity.START
+        // posição absoluta, medida a partir do topo do ecrã real
+        lp.gravity = Gravity.TOP or Gravity.START
         lp.x = 0
-        lp.y = 0
+        lp.y = if (emCima()) 0 else (alturaEcra() - dp(Prefs.altura(this))).coerceAtLeast(0)
         if (Build.VERSION.SDK_INT >= 28) {
             lp.layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
