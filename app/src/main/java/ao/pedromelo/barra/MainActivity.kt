@@ -102,6 +102,10 @@ class MainActivity : Activity() {
         estado.text = buildString {
             append(if (sobrepor) "✔ Sobrepor a outras apps\n" else "✘ Falta: sobrepor a outras apps\n")
             append(if (uso) "✔ Acesso a dados de utilização (apps abertas)" else "✘ Falta: acesso a dados de utilização (para mostrar as apps abertas)")
+            append("\n\nBarra: ").append(BarraService.estado)
+            append("\nTeclado/rato: ").append(BarraService.dispositivos.ifBlank { "?" })
+            val erro = Prefs.p(this@MainActivity).getString(Prefs.ERRO, "") ?: ""
+            if (erro.isNotBlank()) append("\nÚltimo erro: ").append(erro)
         }
     }
 
