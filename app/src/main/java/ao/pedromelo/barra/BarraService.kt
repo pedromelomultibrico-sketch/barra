@@ -410,18 +410,26 @@ class BarraService : Service(), InputManager.InputDeviceListener,
         val h = alturaEcra() - dp(Prefs.altura(this))
         Thread {
             try {
-                Shell.correr("am start --windowingMode 5 -n $comp")
-                Thread.sleep(700)
-                val id = Shell.idTarefa(pkg)
+                val log = StringBuilder("janela $modo $pkg\n")
+                log.append(Shell.correr("am start --windowingMode 5 -n $comp").take(200)).append('\n')
+                var id: Int? = null
+                for (i in 1..6) {
+                    Thread.sleep(400)
+                    id = Shell.idTarefa(pkg)
+                    if (id != null) break
+                }
+                log.append("tarefa=").append(id).append('\n')
                 if (id != null) {
-                    if (modo == "max") {
-                        Shell.correr("am task resize $id 0 0 $w $h")
+                    val cmd = if (modo == "max") {
+                        "am task resize $id 0 0 $w $h"
                     } else {
                         val b = Prefs.limitesJanela(this, pkg)
                         val (l, t, r, bo) = b ?: listOf(w / 6, h / 8, w * 5 / 6, h * 7 / 8)
-                        Shell.correr("am task resize $id $l $t $r $bo")
+                        "am task resize $id $l $t $r $bo"
                     }
+                    log.append(cmd).append(" -> ").append(Shell.correr(cmd).take(300)).append('\n')
                 }
+                Prefs.p(this).edit().putString(Prefs.TESTE, log.toString()).apply()
             } catch (e: Exception) {
                 registarErro("janela", e)
             }
