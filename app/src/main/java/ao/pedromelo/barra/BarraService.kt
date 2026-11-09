@@ -151,29 +151,49 @@ class BarraService : Service(), InputManager.InputDeviceListener,
     override fun onInputDeviceChanged(deviceId: Int) = avaliar()
 
     private fun temTecladoOuRato(): Boolean {
+        var encontrou = false
+        val nomes = StringBuilder()
         for (id in InputDevice.getDeviceIds()) {
             val d = InputDevice.getDevice(id) ?: continue
             if (d.isVirtual) continue
-            if (Build.VERSION.SDK_INT >= 29 && !d.isExternal) continue
+            val externo = Build.VERSION.SDK_INT < 29 || d.isExternal
             val s = d.sources
             val rato = (s and InputDevice.SOURCE_MOUSE) == InputDevice.SOURCE_MOUSE ||
                 (s and InputDevice.SOURCE_TOUCHPAD) == InputDevice.SOURCE_TOUCHPAD
             val teclado = d.keyboardType == InputDevice.KEYBOARD_TYPE_ALPHABETIC
-            if (rato || teclado) return true
+            if (externo && (rato || teclado)) {
+                encontrou = true
+                nomes.append(d.name).append(if (rato) " (rato)" else " (teclado)").append("; ")
+            }
         }
-        return false
+        dispositivos = if (encontrou) nomes.toString() else "nenhum teclado/rato externo"
+        return encontrou
     }
 
     private fun avaliar() {
-        val mostrar = when (Prefs.modo(this)) {
-            "sempre" -> true
-            "nunca" -> false
-            else -> temTecladoOuRato()
+        try {
+            val tem = temTecladoOuRato()
+            val mostrar = when (Prefs.modo(this)) {
+                "sempre" -> true
+                "nunca" -> false
+                else -> tem
+            }
+            if (!Settings.canDrawOverlays(this)) {
+                estado = "sem permissão para sobrepor"
+                esconder()
+            } else if (mostrar) {
+                mostrar()
+            } else {
+                esconder()
+                estado = "escondida (" + Prefs.modo(this) + ")"
+            }
+        } catch (e: Exception) {
+            registarErro("avaliar", e)
         }
-        if (mostrar && Settings.canDrawOverlays(this)) mostrar() else esconder()
     }
 
     override fun onSharedPreferenceChanged(sp: SharedPreferences?, key: String?) {
+        if (key == Prefs.ERRO) return
         // qualquer mudança de definição: redesenhar
         esconder()
         avaliar()
