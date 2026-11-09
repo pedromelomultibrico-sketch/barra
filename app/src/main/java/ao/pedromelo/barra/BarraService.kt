@@ -529,9 +529,10 @@ class BarraService : Service(), InputManager.InputDeviceListener,
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT
         )
-        lp.gravity = (if (emCima()) Gravity.TOP else Gravity.BOTTOM) or Gravity.START
+        lp.gravity = Gravity.TOP or Gravity.START
         lp.x = dp(4)
-        lp.y = dp(Prefs.altura(this)) + dp(4)
+        lp.y = if (emCima()) dp(Prefs.altura(this)) + dp(4)
+            else (alturaEcra() - dp(Prefs.altura(this)) - dp(4) - altura).coerceAtLeast(0)
         if (Build.VERSION.SDK_INT >= 30) lp.fitInsetsTypes = 0
         painel.setOnTouchListener { _, ev ->
             if (ev.action == MotionEvent.ACTION_OUTSIDE) { fecharMenu(); true } else false
