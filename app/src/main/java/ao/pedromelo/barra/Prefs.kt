@@ -18,6 +18,7 @@ object Prefs {
     const val MAX_RECENTES = "maxRecentes"
     const val FIXAS = "fixas"               // pacotes separados por vírgula
     const val COLUNAS_MENU = "colunasMenu"
+    const val ERRO = "ultimoErro"
 
     fun p(c: Context): SharedPreferences = c.getSharedPreferences(NOME, Context.MODE_PRIVATE)
 
