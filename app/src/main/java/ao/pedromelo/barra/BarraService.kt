@@ -230,6 +230,14 @@ class BarraService : Service(), InputManager.InputDeviceListener,
             m.heightPixels
         }
 
+    private fun larguraEcra(): Int =
+        if (Build.VERSION.SDK_INT >= 30) wm.currentWindowMetrics.bounds.width()
+        else {
+            val m = android.util.DisplayMetrics()
+            @Suppress("DEPRECATION") wm.defaultDisplay.getRealMetrics(m)
+            m.widthPixels
+        }
+
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)
         // rodou o ecrã: voltar a medir e redesenhar
