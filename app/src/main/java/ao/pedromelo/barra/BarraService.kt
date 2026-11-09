@@ -561,6 +561,14 @@ class BarraService : Service(), InputManager.InputDeviceListener,
     // ---------- atualização periódica ----------
 
     private fun atualizar() {
+        // o instalador do Android recusa toques quando há uma barra por cima: sair do caminho
+        if (Prefs.recentes(this) || pausada) {
+            recentes()
+            val proteger = appAtual in protegidas
+            if (proteger && barra != null) { esconder(); pausada = true; return }
+            if (!proteger && pausada) { pausada = false; avaliar(); return }
+            if (pausada) return
+        }
         if (barra == null) return
         relogio?.text = SimpleDateFormat("HH:mm\ndd/MM/yy", Locale.getDefault()).format(Date())
 
