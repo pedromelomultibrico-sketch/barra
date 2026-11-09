@@ -3,7 +3,7 @@ package ao.pedromelo.barra
 import android.content.Context
 import android.content.SharedPreferences
 
-/** Todas as definições da barra, num só sítio. */
+/** Todas as definições da barra, num só sítio (versão com janelas). */
 object Prefs {
     const val NOME = "barra"
 
