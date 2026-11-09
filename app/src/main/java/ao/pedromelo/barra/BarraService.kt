@@ -441,8 +441,30 @@ class BarraService : Service(), InputManager.InputDeviceListener,
     }
 
     private fun fecharApp(pkg: String) {
+        Prefs.gravarModoJanela(this, pkg, "")
         Thread { try { Shell.correr("am force-stop $pkg") } catch (_: Exception) {} }.start()
     }
+
+    /** Tira a app da janela e põe-na em ecrã inteiro (saída de emergência). */
+    private fun ecraInteiro(pkg: String) {
+        Prefs.gravarModoJanela(this, pkg, "")
+        val comp = componente(pkg) ?: return
+        Thread {
+            try {
+                val id = Shell.idTarefa(pkg)
+                if (id != null) Shell.correr("am task set-windowing-mode $id 1")
+                Shell.correr("am start --windowingMode 1 -n $comp")
+            } catch (_: Exception) {}
+        }.start()
+    }
+
+    /** Apps de sistema por cima das quais a barra não pode ficar (o Android bloqueia os toques). */
+    private val protegidas = setOf(
+        "com.google.android.packageinstaller", "com.android.packageinstaller",
+        "com.android.permissioncontroller", "com.google.android.permissioncontroller",
+        "com.google.android.gms"
+    )
+    private var pausada = false
 
     private var popup: View? = null
 
