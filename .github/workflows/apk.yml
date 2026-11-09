@@ -100,7 +100,9 @@ jobs:
           fi
           git config user.name "Barra CI"
           git config user.email "ci@barra.local"
-          git add estado
+          git add estado registos
           git commit -m "estado da compilacao ${{ github.run_number }} [skip ci]" || true
-          git pull --rebase origin main || true
-          git push || true
+          for i in 1 2 3 4 5; do
+            git pull --rebase origin main && git push && break
+            sleep 5
+          done
