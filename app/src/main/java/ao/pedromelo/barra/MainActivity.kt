@@ -83,6 +83,51 @@ class MainActivity : Activity() {
         relogioDiag.postDelayed({ arrancarServico() }, 600)
     }
 
+    // ---------- Shizuku e teste das janelas ----------
+
+    private fun pedirShizuku() {
+        try {
+            if (!Shell.ligado()) {
+                Prefs.p(this).edit().putString(Prefs.TESTE, "O Shizuku não está a correr.").apply()
+                return
+            }
+            if (!Shell.disponivel()) rikka.shizuku.Shizuku.requestPermission(77)
+        } catch (e: Throwable) {
+            Prefs.p(this).edit().putString(Prefs.TESTE, "Shizuku: ${e.message}").apply()
+        }
+    }
+
+    private fun testarJanelas() {
+        Prefs.p(this).edit().putString(Prefs.TESTE, "A testar…").apply()
+        val calc = packageManager.queryIntentActivities(
+            Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER), 0
+        ).map { it.activityInfo.packageName }.firstOrNull { it.contains("calculator") } ?: "com.android.chrome"
+        val comp = packageManager.getLaunchIntentForPackage(calc)?.component?.flattenToShortString()
+        val w = resources.displayMetrics.widthPixels
+        val h = resources.displayMetrics.heightPixels
+        Thread {
+            val log = StringBuilder()
+            try {
+                log.append("Shizuku ligado=").append(Shell.ligado()).append(" autorizado=").append(Shell.disponivel()).append('\n')
+                log.append("1) abrir ").append(comp).append(" em janela:\n")
+                log.append(Shell.correr("am start --windowingMode 5 -n $comp").take(300)).append('\n')
+                Thread.sleep(1500)
+                val id = Shell.idTarefa(calc)
+                log.append("2) tarefa=").append(id).append('\n')
+                if (id != null) {
+                    log.append("3) redimensionar: ")
+                    log.append(Shell.correr("am task resize $id ${w / 4} ${h / 4} ${w * 3 / 4} ${h * 3 / 4}").take(300)).append('\n')
+                }
+                Thread.sleep(800)
+                log.append("4) modos:\n")
+                log.append(Shell.correr("dumpsys activity activities | grep -iE 'windowingMode|mode=freeform|mBounds' | head -12").take(1200))
+            } catch (e: Throwable) {
+                log.append("ERRO: ").append(e.javaClass.simpleName).append(": ").append(e.message)
+            }
+            Prefs.p(this).edit().putString(Prefs.TESTE, log.toString().take(3000)).apply()
+        }.start()
+    }
+
     // ---------- permissões ----------
 
     private fun temAcessoUso(): Boolean {
