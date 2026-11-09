@@ -157,6 +157,9 @@ class BarraService : Service(), InputManager.InputDeviceListener,
         for (id in InputDevice.getDeviceIds()) {
             val d = InputDevice.getDevice(id) ?: continue
             if (d.isVirtual) continue
+            // a caneta (ex.: Redmi Smart Pen) não conta como rato
+            if ((d.sources and InputDevice.SOURCE_STYLUS) == InputDevice.SOURCE_STYLUS) continue
+            if (d.name.contains("pen", ignoreCase = true) || d.name.contains("stylus", ignoreCase = true)) continue
             val externo = Build.VERSION.SDK_INT < 29 || d.isExternal
             val s = d.sources
             val rato = (s and InputDevice.SOURCE_MOUSE) == InputDevice.SOURCE_MOUSE ||
