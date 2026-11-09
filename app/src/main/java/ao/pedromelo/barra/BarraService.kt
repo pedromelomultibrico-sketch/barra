@@ -449,6 +449,13 @@ class BarraService : Service(), InputManager.InputDeviceListener,
 
     /** modo: "janela" (janela flutuante) ou "max" (ocupa o ecrã todo menos a barra) */
     private fun abrirComModo(pkg: String, modo: String) {
+        if (modo == "max") {
+            // a Xiaomi não deixa as janelas passar de ~3/4 do ecrã: maximizar = ecrã inteiro,
+            // e a barra esconde-se sozinha para não tapar nada
+            ecraInteiro(pkg)
+            Prefs.gravarModoJanela(this, pkg, "max")
+            return
+        }
         Prefs.gravarModoJanela(this, pkg, modo)
         val comp = componente(pkg) ?: return abrirApp(pkg)
         val w = larguraEcra()
