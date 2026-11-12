@@ -24,6 +24,22 @@ object Prefs {
 
     fun autoEsconder(c: Context) = p(c).getBoolean(AUTO_ESCONDER, true)
 
+    // botão de apagar o ecrã e modo carro
+    const val BOTAO_DESLIGAR = "botaoDesligar"
+    const val BOTAO_X = "botaoX"            // 0..100 % da largura
+    const val BOTAO_TAM = "botaoTam"        // dp
+    const val MANTER_ACESO = "manterAceso"
+    const val BLOQUEAR_SEM_CORRENTE = "bloquearSemCorrente"
+    const val ACORDAR_COM_CORRENTE = "acordarComCorrente"
+    val CHAVES_CARRO = setOf(BOTAO_DESLIGAR, BOTAO_X, BOTAO_TAM, MANTER_ACESO, BLOQUEAR_SEM_CORRENTE, ACORDAR_COM_CORRENTE)
+
+    fun botaoDesligar(c: Context) = p(c).getBoolean(BOTAO_DESLIGAR, true)
+    fun botaoX(c: Context) = p(c).getInt(BOTAO_X, 70)
+    fun botaoTam(c: Context) = p(c).getInt(BOTAO_TAM, 34)
+    fun manterAceso(c: Context) = p(c).getBoolean(MANTER_ACESO, true)
+    fun bloquearSemCorrente(c: Context) = p(c).getBoolean(BLOQUEAR_SEM_CORRENTE, true)
+    fun acordarComCorrente(c: Context) = p(c).getBoolean(ACORDAR_COM_CORRENTE, true)
+
     /** Como a app ficou da última vez: "janela", "max" ou "" (normal). */
     fun modoJanela(c: Context, pkg: String) = p(c).getString("janela_modo_$pkg", "") ?: ""
 
