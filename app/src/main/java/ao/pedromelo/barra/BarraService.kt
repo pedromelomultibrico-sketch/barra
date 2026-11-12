@@ -320,6 +320,15 @@ class BarraService : Service(), InputManager.InputDeviceListener,
         // espaço
         b.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
 
+        // apagar o ecrã
+        b.addView(ImageView(this).apply {
+            setImageResource(R.drawable.ic_desligar)
+            setColorFilter(corTexto())
+            contentDescription = "Apagar o ecrã"
+            layoutParams = LinearLayout.LayoutParams(tam, tam).apply { marginEnd = dp(10) }
+            setOnClickListener { carro?.apagarEcra() }
+        })
+
         // relógio
         if (Prefs.relogio(this)) {
             val r = TextView(this).apply {
