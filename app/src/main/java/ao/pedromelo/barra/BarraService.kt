@@ -416,6 +416,7 @@ class BarraService : Service(), InputManager.InputDeviceListener,
         barra = null
         zonaRecentes = null
         relogio = null
+        carro?.barraPorCima(false)
     }
 
     private fun separador(): View = View(this).apply {
