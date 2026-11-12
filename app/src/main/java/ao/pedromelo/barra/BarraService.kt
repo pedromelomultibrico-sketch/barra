@@ -252,6 +252,7 @@ class BarraService : Service(), InputManager.InputDeviceListener,
         // rodou o ecrã: voltar a medir e redesenhar
         esconder()
         avaliar()
+        carro?.reposicionar()
     }
 
     private fun parametrosBarra(): WindowManager.LayoutParams {
