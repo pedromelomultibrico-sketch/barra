@@ -98,6 +98,11 @@ class BarraService : Service(), InputManager.InputDeviceListener,
             im.registerInputDeviceListener(this, handler)
             Prefs.p(this).registerOnSharedPreferenceChangeListener(this)
             launchers = pacotesLauncher()
+            try {
+                carro = ModoCarro(this).also { it.arrancar() }
+            } catch (e: Exception) {
+                registarErro("modo carro", e)
+            }
             avaliar()
             handler.post(tique)
         } catch (e: Exception) {
