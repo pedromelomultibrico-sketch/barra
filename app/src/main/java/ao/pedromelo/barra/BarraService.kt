@@ -206,6 +206,7 @@ class BarraService : Service(), InputManager.InputDeviceListener,
 
     override fun onSharedPreferenceChanged(sp: SharedPreferences?, key: String?) {
         if (key == Prefs.ERRO || key == Prefs.TESTE || (key ?: "").startsWith("janela_")) return
+        if ((key ?: "") in Prefs.CHAVES_CARRO) { carro?.definicaoMudou(key); return }
         // qualquer mudança de definição: redesenhar
         esconder()
         avaliar()
