@@ -62,6 +62,7 @@ class BarraService : Service(), InputManager.InputDeviceListener,
     private var appAtual: String? = null
     private val icones = HashMap<String, Drawable>()
     private var launchers: Set<String> = emptySet()
+    private var carro: ModoCarro? = null
 
     private val tique = object : Runnable {
         override fun run() {
@@ -97,6 +98,11 @@ class BarraService : Service(), InputManager.InputDeviceListener,
             im.registerInputDeviceListener(this, handler)
             Prefs.p(this).registerOnSharedPreferenceChangeListener(this)
             launchers = pacotesLauncher()
+            try {
+                carro = ModoCarro(this).also { it.arrancar() }
+            } catch (e: Exception) {
+                registarErro("modo carro", e)
+            }
             avaliar()
             handler.post(tique)
         } catch (e: Exception) {
@@ -114,6 +120,8 @@ class BarraService : Service(), InputManager.InputDeviceListener,
         handler.removeCallbacksAndMessages(null)
         try { im.unregisterInputDeviceListener(this) } catch (_: Exception) {}
         Prefs.p(this).unregisterOnSharedPreferenceChangeListener(this)
+        carro?.parar()
+        carro = null
         esconder()
         estado = "parado"
         super.onDestroy()
@@ -198,6 +206,7 @@ class BarraService : Service(), InputManager.InputDeviceListener,
 
     override fun onSharedPreferenceChanged(sp: SharedPreferences?, key: String?) {
         if (key == Prefs.ERRO || key == Prefs.TESTE || (key ?: "").startsWith("janela_")) return
+        if ((key ?: "") in Prefs.CHAVES_CARRO) { carro?.definicaoMudou(key); return }
         // qualquer mudança de definição: redesenhar
         esconder()
         avaliar()
@@ -243,6 +252,7 @@ class BarraService : Service(), InputManager.InputDeviceListener,
         // rodou o ecrã: voltar a medir e redesenhar
         esconder()
         avaliar()
+        carro?.reposicionar()
     }
 
     private fun parametrosBarra(): WindowManager.LayoutParams {
@@ -310,6 +320,15 @@ class BarraService : Service(), InputManager.InputDeviceListener,
         // espaço
         b.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
 
+        // apagar o ecrã
+        b.addView(ImageView(this).apply {
+            setImageResource(R.drawable.ic_desligar)
+            setColorFilter(corTexto())
+            contentDescription = "Apagar o ecrã"
+            layoutParams = LinearLayout.LayoutParams(tam, tam).apply { marginEnd = dp(10) }
+            setOnClickListener { carro?.apagarEcra() }
+        })
+
         // relógio
         if (Prefs.relogio(this)) {
             val r = TextView(this).apply {
@@ -328,6 +347,7 @@ class BarraService : Service(), InputManager.InputDeviceListener,
             barra = b
             lpBarra = lpB
             recolhida = false
+            carro?.barraPorCima(true)
             b.aoPairar = { ev ->
                 when (ev.action) {
                     MotionEvent.ACTION_HOVER_ENTER, MotionEvent.ACTION_HOVER_MOVE -> {
@@ -374,6 +394,7 @@ class BarraService : Service(), InputManager.InputDeviceListener,
         lp.height = fina
         lp.y = if (emCima()) 0 else alturaEcra() - fina
         try { wm.updateViewLayout(b, lp); recolhida = true } catch (_: Exception) {}
+        carro?.barraPorCima(false)
     }
 
     private fun expandir() {
@@ -383,6 +404,7 @@ class BarraService : Service(), InputManager.InputDeviceListener,
         lp.height = alt
         lp.y = if (emCima()) 0 else (alturaEcra() - alt).coerceAtLeast(0)
         try { wm.updateViewLayout(b, lp); recolhida = false } catch (_: Exception) {}
+        carro?.barraPorCima(true)
     }
 
     private fun esconder() {
@@ -394,6 +416,7 @@ class BarraService : Service(), InputManager.InputDeviceListener,
         barra = null
         zonaRecentes = null
         relogio = null
+        carro?.barraPorCima(false)
     }
 
     private fun separador(): View = View(this).apply {
