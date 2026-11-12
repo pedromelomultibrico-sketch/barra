@@ -404,6 +404,7 @@ class BarraService : Service(), InputManager.InputDeviceListener,
         lp.height = alt
         lp.y = if (emCima()) 0 else (alturaEcra() - alt).coerceAtLeast(0)
         try { wm.updateViewLayout(b, lp); recolhida = false } catch (_: Exception) {}
+        carro?.barraPorCima(true)
     }
 
     private fun esconder() {
