@@ -62,6 +62,7 @@ class BarraService : Service(), InputManager.InputDeviceListener,
     private var appAtual: String? = null
     private val icones = HashMap<String, Drawable>()
     private var launchers: Set<String> = emptySet()
+    private var carro: ModoCarro? = null
 
     private val tique = object : Runnable {
         override fun run() {
