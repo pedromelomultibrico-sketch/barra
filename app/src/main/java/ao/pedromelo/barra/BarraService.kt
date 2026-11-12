@@ -394,6 +394,7 @@ class BarraService : Service(), InputManager.InputDeviceListener,
         lp.height = fina
         lp.y = if (emCima()) 0 else alturaEcra() - fina
         try { wm.updateViewLayout(b, lp); recolhida = true } catch (_: Exception) {}
+        carro?.barraPorCima(false)
     }
 
     private fun expandir() {
