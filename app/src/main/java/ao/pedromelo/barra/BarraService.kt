@@ -120,6 +120,8 @@ class BarraService : Service(), InputManager.InputDeviceListener,
         handler.removeCallbacksAndMessages(null)
         try { im.unregisterInputDeviceListener(this) } catch (_: Exception) {}
         Prefs.p(this).unregisterOnSharedPreferenceChangeListener(this)
+        carro?.parar()
+        carro = null
         esconder()
         estado = "parado"
         super.onDestroy()
