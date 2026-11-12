@@ -150,6 +150,7 @@ class MainActivity : Activity() {
             append(if (Shell.disponivel()) "\n✔ Shizuku (janelas)" else if (Shell.ligado()) "\n✘ Falta: autorizar o Shizuku" else "\n✘ Shizuku não está a correr")
             append("\n\nBarra: ").append(BarraService.estado)
             append("\nTeclado/rato: ").append(BarraService.dispositivos.ifBlank { "?" })
+            append("\nEcrã/carro: ").append(ModoCarro.estado)
             val erro = Prefs.p(this@MainActivity).getString(Prefs.ERRO, "") ?: ""
             if (erro.isNotBlank()) append("\nÚltimo erro: ").append(erro)
             val teste = Prefs.p(this@MainActivity).getString(Prefs.TESTE, "") ?: ""
