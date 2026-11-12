@@ -294,6 +294,25 @@ class MainActivity : Activity() {
         caixa("Mostrar apps abertas / recentes", Prefs.RECENTES, Prefs.recentes(this))
         deslizador("Máximo de apps recentes", Prefs.MAX_RECENTES, 0, 20, Prefs.maxRecentes(this), "")
 
+        titulo("Ecrã e carro")
+        nota("Botão redondo de apagar o ecrã, junto aos botões de navegação. Toque: apaga. Toque longo: abre este ecrã.")
+        caixa("Mostrar o botão de apagar o ecrã", Prefs.BOTAO_DESLIGAR, Prefs.botaoDesligar(this))
+        deslizador("Posição do botão (da esquerda para a direita)", Prefs.BOTAO_X, 0, 100, Prefs.botaoX(this), " %")
+        deslizador("Tamanho do botão", Prefs.BOTAO_TAM, 20, 64, Prefs.botaoTam(this), " dp")
+        caixa("Em carga, o ecrã nunca se apaga sozinho (só quando eu o apagar)", Prefs.MANTER_ACESO, Prefs.manterAceso(this))
+        caixa("Ao tirar a corrente (desligar a chave): apagar e bloquear", Prefs.BLOQUEAR_SEM_CORRENTE, Prefs.bloquearSemCorrente(this))
+        caixa("Ao voltar a corrente (ligar a chave): acender e desbloquear", Prefs.ACORDAR_COM_CORRENTE, Prefs.acordarComCorrente(this))
+        nota("Desbloquear sozinho só passa o ecrã de bloqueio se o tablet não tiver PIN/padrão, ou se o Smart Lock confiar no Bluetooth do carro. Com PIN, acende e fica à espera do PIN.")
+        botao("Testar: apagar o ecrã daqui a 2 segundos") {
+            Thread {
+                try {
+                    Thread.sleep(2000)
+                    if (Shell.disponivel()) Shell.correr("input keyevent 223")
+                    else Prefs.p(this).edit().putString(Prefs.TESTE, "Apagar: falta autorizar o Shizuku").apply()
+                } catch (_: Throwable) {}
+            }.start()
+        }
+
         titulo("Versão")
         val v = try { packageManager.getPackageInfo(packageName, 0).versionName } catch (_: Exception) { "?" }
         nota("Barra $v")
