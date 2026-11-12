@@ -347,6 +347,7 @@ class BarraService : Service(), InputManager.InputDeviceListener,
             barra = b
             lpBarra = lpB
             recolhida = false
+            carro?.barraPorCima(true)
             b.aoPairar = { ev ->
                 when (ev.action) {
                     MotionEvent.ACTION_HOVER_ENTER, MotionEvent.ACTION_HOVER_MOVE -> {
